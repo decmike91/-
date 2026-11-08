@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GestSP Mobile</title>
+<style>
+:root { --blue:#1f4e79; --blue2:#1f6fb5; --bg:#f4f6fa; --card:#fff; --ink:#1d2733; --quiet:#5b6778; --line:#e2e7ef;
+        --red:#b3261e; --green:#2e7d32; --amber:#9a6700; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin:0; height:100%; background:var(--bg); color:var(--ink);
+             font-family: Roboto, "Segoe UI", system-ui, sans-serif; font-size:15px; }
+header { position:fixed; top:0; left:0; right:0; height:56px; background:var(--blue); color:#fff; display:flex;
+         align-items:center; padding:0 8px; z-index:10; box-shadow:0 1px 4px rgba(0,0,0,.2); }
+header h1 { font-size:18px; font-weight:500; margin:0 8px; flex:1; white-space:nowrap; overflow:hidden;
+            text-overflow:ellipsis; }
+.ib { background:none; border:0; color:inherit; width:44px; height:44px; border-radius:22px; font-size:22px;
+      display:flex; align-items:center; justify-content:center; }
+.ib:active { background:rgba(255,255,255,.15); }
+main { padding:64px 0 76px 0; min-height:100%; }
+nav { position:fixed; bottom:0; left:0; right:0; height:64px; background:#fff; border-top:1px solid var(--line);
+      display:flex; z-index:10; padding-bottom: env(safe-area-inset-bottom); }
+nav button { flex:1; background:none; border:0; color:var(--quiet); font-size:11.5px; display:flex;
+             flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+nav button span { font-size:22px; line-height:24px; }
+nav button.on { color:var(--blue2); font-weight:600; }
+.sec { margin:14px 14px 6px; font-size:13px; font-weight:600; color:var(--quiet); text-transform:uppercase;
+       letter-spacing:.04em; display:flex; justify-content:space-between; }
+.card { background:var(--card); margin:0 10px 10px; border-radius:12px; box-shadow:0 1px 2px rgba(0,0,0,.06);
+        overflow:hidden; }
+.row { display:flex; align-items:center; gap:12px; padding:12px 14px; border-bottom:1px solid var(--line);
+       min-height:56px; }
+.row:last-child { border-bottom:0; }
+.row:active { background:#eef3fa; }
+.ico { width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+       font-size:12px; font-weight:700; color:#fff; flex:none; }
+.ico.dir { background:#f0b429; font-size:20px; }
+.txt { flex:1; min-width:0; }
+.t1 { font-size:15px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.t2 { font-size:12.5px; color:var(--quiet); margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.chev { color:#b8c4d6; font-size:20px; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:5px; }
+.chip { font-size:11.5px; padding:2px 8px; border-radius:10px; background:#e3effa; color:var(--blue); white-space:nowrap; }
+.crumbs { margin:4px 14px 8px; font-size:13px; color:var(--quiet); overflow-x:auto; white-space:nowrap; }
+.crumbs a { color:var(--blue2); text-decoration:none; }
+.empty { text-align:center; color:var(--quiet); padding:36px 20px; }
+.badge { background:var(--red); color:#fff; border-radius:10px; font-size:12px; padding:1px 7px; margin-left:6px; }
+.fab { position:fixed; right:18px; bottom:84px; width:56px; height:56px; border-radius:16px; background:var(--blue2);
+       color:#fff; font-size:28px; border:0; box-shadow:0 3px 8px rgba(0,0,0,.3); z-index:9; }
+.btn { display:inline-flex; align-items:center; justify-content:center; gap:6px; border:1px solid #b8c4d6;
+       background:#fff; color:var(--blue); border-radius:20px; padding:9px 16px; font-size:14px; font-weight:500; }
+.btn.pri { background:var(--blue2); color:#fff; border-color:var(--blue2); }
+.btn.ok { background:var(--green); color:#fff; border-color:var(--green); }
+.btn.ko { color:var(--red); border-color:#e3b3b0; }
+.btn:disabled { opacity:.45; }
+.btns { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; }
+.field { padding:10px 14px; }
+.field label { display:block; font-size:12.5px; color:var(--quiet); margin-bottom:4px; }
+input[type=text], input[type=search], textarea, select { width:100%; font-size:16px; padding:11px 12px;
+       border:1px solid #c7d0dd; border-radius:10px; background:#fff; color:var(--ink); }
+textarea { min-height:90px; }
+.kv { display:flex; padding:8px 14px; border-bottom:1px solid var(--line); font-size:14px; }
+.kv b { width:120px; color:var(--quiet); font-weight:500; flex:none; }
+.tagpick { display:flex; flex-wrap:wrap; gap:8px; padding:12px 14px; }
+.tagpick button { border:1.5px solid #c7d0dd; background:#fff; border-radius:18px; padding:8px 14px; font-size:14px; }
+.tagpick button.on { color:#fff; }
+#sheet { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:20; display:none; }
+#sheet .pane { position:absolute; left:0; right:0; bottom:0; max-height:88%; overflow:auto; background:var(--bg);
+               border-radius:16px 16px 0 0; padding-bottom:20px; }
+#sheet .grip { width:40px; height:4px; border-radius:2px; background:#c7d0dd; margin:8px auto; }
+#sheet h2 { font-size:17px; margin:4px 14px 10px; word-break:break-word; }
+#toast { position:fixed; left:50%; bottom:86px; transform:translateX(-50%); background:#323a45; color:#fff;
+         padding:10px 16px; border-radius:8px; font-size:14px; z-index:30; display:none; max-width:90%; }
+.spin { margin:40px auto; width:34px; height:34px; border:3px solid #cfe3f7; border-top-color:var(--blue2);
+        border-radius:50%; animation:sp 0.8s linear infinite; }
+@keyframes sp { to { transform:rotate(360deg); } }
+.seg { display:flex; margin:0 14px 10px; background:#e6ebf2; border-radius:10px; padding:3px; }
+.seg button { flex:1; border:0; background:none; padding:8px; border-radius:8px; font-size:13.5px; color:var(--quiet); }
+.seg button.on { background:#fff; color:var(--blue); font-weight:600; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.progress { height:4px; background:#e3effa; margin:0 14px; border-radius:2px; overflow:hidden; }
+.progress div { height:100%; background:var(--blue2); width:0; transition:width .2s; }
+.warn { margin:10px; padding:10px 14px; background:#fff4e5; border-radius:10px; font-size:13.5px; }
+</style>
+</head>
+<body>
+<header>
+  <button class="ib" id="b-back" aria-label="Retour" style="visibility:hidden">←</button>
+  <h1 id="title">GestSP</h1>
+  <button class="ib" id="b-refresh" aria-label="Actualiser">⟳</button>
+</header>
+<main id="view"><div class="spin"></div></main>
+<button class="fab" id="fab" aria-label="Ajouter" style="display:none">+</button>
+<nav>
+  <button data-tab="home" class="on"><span>⌂</span>Accueil</button>
+  <button data-tab="browse"><span>▤</span>Parcourir</button>
+  <button data-tab="search"><span>⌕</span>Rechercher</button>
+  <button data-tab="review"><span>✓</span>À valider</button>
+  <button data-tab="settings"><span>⚙</span>Réglages</button>
+</nav>
+<div id="sheet"><div class="pane"><div class="grip"></div><div id="sheet-body"></div></div></div>
+<div id="toast"></div>
+<input type="file" id="pick-files" multiple style="display:none">
+<input type="file" id="pick-photo" accept="image/*" capture="environment" style="display:none">
+
+<script>
+"use strict";
+/* ============================================================ configuration */
+const SITE = (window.GESTSP_SITE || "%%SITE%%").replace(/\/$/, "");
+const SITE_URL = SITE.indexOf("%%") === 0 ? location.origin : SITE;
+const NATIVE = window.GestSPNative || null;
+const VERSION = "1.0.0";
+const COLS = { tags: "GSP_Indicateurs", status: "GSP_Statut", reviewer: "GSP_Relecteur", due: "GSP_Echeance",
+               type: "GSP_TypeDoc" };
+const ST = { review: "En relecture", ok: "Validé", rejected: "Brouillon" };
+const DEFAULT_TAGS = [["Travail","#1f6fb5"],["AAC-CEA","#7a1fa2"],["Perso","#2e7d32"],["Facture","#c62828"],
+  ["Devis","#ef6c00"],["RI","#00838f"],["Bilans comptables","#5d4037"],["Bilans financiers","#6d4c41"],
+  ["Rapport d'activité","#283593"],["Note","#9e9d24"],["Calcul","#455a64"],["Impôts","#ad1457"],["3D","#00695c"]]
+  .map(([name, color]) => ({ name, color }));
+const PROFILES = ["Lecteur", "Utilisateur", "Contrôle total"];
+const FEATURE_DEFAULTS = { indicators: ["Utilisateur", "Contrôle total"], search: ["Utilisateur", "Contrôle total"],
+  approve: ["Utilisateur", "Contrôle total"], multi_deposit: ["Utilisateur", "Contrôle total"] };
+
+const S = { user: null, web: null, libs: [], rights: {}, fields: {}, tags: DEFAULT_TAGS, features: {},
+            stack: [], tab: "home", lib: null, folder: "", items: [], pending: null, digest: null };
+
+/* ================================================================ outils */
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const q = s => encodeURIComponent(String(s).replace(/'/g, "''")).replace(/%2F/g, "/");
+function toast(msg, ms = 2600) { const t = $("#toast"); t.textContent = msg; t.style.display = "block";
+  clearTimeout(toast._t); toast._t = setTimeout(() => t.style.display = "none", ms); }
+function size(n) { if (n == null) return ""; if (n < 1024) return n + " o"; const u = ["Ko", "Mo", "Go"]; let f = n / 1024, i = 0;
+  while (f >= 1024 && i < 2) { f /= 1024; i++; } return f.toFixed(1).replace(".", ",") + " " + u[i]; }
+function date(s) { if (!s) return ""; const d = new Date(s); if (isNaN(d)) return "";
+  return d.toLocaleDateString("fr-FR") + " " + d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }); }
+function day(s) { if (!s) return ""; const d = new Date(s); return isNaN(d) ? "" : d.toLocaleDateString("fr-FR"); }
+function fold(s) { return String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
+function results(d) { d = d && d.d !== undefined ? d.d : d; return d && d.results !== undefined ? d.results : d; }
+function vals(v) { if (v == null || v === "") return []; if (Array.isArray(v)) return v; if (v.results) return v.results; return [v]; }
+function ext(name) { const i = name.lastIndexOf("."); return i > 0 ? name.slice(i + 1).toUpperCase().slice(0, 4) : "?"; }
+const EXT_COLORS = { PDF: "#c62828", DOCX: "#1f6fb5", DOC: "#1f6fb5", XLSX: "#2e7d32", XLS: "#2e7d32",
+  PPTX: "#ef6c00", PPT: "#ef6c00", JPG: "#7a1fa2", JPEG: "#7a1fa2", PNG: "#7a1fa2", MSG: "#455a64", STL: "#00695c" };
+function tagColor(n) { const t = S.tags.find(x => x.name === n); return (t && t.color) || "#1f6fb5"; }
+function chips(list) { return list.length ? `<div class="chips">${list.map(t => `<span class="chip" style="background:${tagColor(t)}22;color:${tagColor(t)}">${esc(t)}</span>`).join("")}</div>` : ""; }
+
+/* ================================================================== REST */
+class AuthError extends Error {}
+async function api(path, opt = {}) {
+  const url = path.startsWith("http") ? path : SITE_URL + path;
+  const headers = Object.assign({ Accept: "application/json;odata=verbose" }, opt.headers || {});
+  if (opt.method && opt.method !== "GET") {
+    headers["X-RequestDigest"] = await digest();
+    if (!headers["Content-Type"] && typeof opt.body === "string") headers["Content-Type"] = "application/json;odata=verbose";
+  }
+  let r;
+  try { r = await fetch(url, Object.assign({ credentials: "include" }, opt, { headers })); }
+  catch (e) { throw new Error("Serveur injoignable. Vérifiez la connexion (VPN si besoin)."); }
+  if (r.status === 401 || (r.redirected && /signin|authenticate|_login/i.test(r.url))) throw new AuthError("Session expirée");
+  if (!r.ok) {
+    let msg = "";
+    try { const j = await r.json(); msg = (j.error && j.error.message && (j.error.message.value || j.error.message)) || ""; } catch (e) {}
+    if (r.status === 403) throw new Error("Accès refusé : vos droits ne permettent pas cette opération.");
+    if (r.status === 404) throw new Error("Élément introuvable (déplacé ou supprimé ?).");
+    if (/threshold|seuil/i.test(msg)) throw new Error("Bibliothèque trop volumineuse pour cette opération (seuil de 5 000).");
+    throw new Error("SharePoint a refusé l'opération" + (msg ? " : " + msg : "."));
+  }
+  if (opt.raw) return r;
+  const t = await r.text();
+  return t ? JSON.parse(t) : null;
+}
+async function digest() {
+  if (S.digest && S.digest.until > Date.now()) return S.digest.v;
+  const r = await fetch(SITE_URL + "/_api/contextinfo", { method: "POST", credentials: "include",
+    headers: { Accept: "application/json;odata=verbose" } });
+  if (!r.ok) throw r.status === 401 ? new AuthError("Session expirée") : new Error("Jeton de sécurité refusé.");
+  const d = (await r.json()).d.GetContextWebInformation;
+  S.digest = { v: d.FormDigestValue, until: Date.now() + (d.FormDigestTimeoutSeconds - 60) * 1000 };
+  return S.digest.v;
+}
+function perms(p) {
+  const hi = Number(p.High), lo = Number(p.Low);
+  const has = k => { if (k === 65) return hi === 2147483647 && lo === 4294967295; const b = k - 1;
+    return b < 32 ? ((lo >>> b) & 1) === 1 : ((hi >>> (b - 32)) & 1) === 1; };
+  const r = { read: has(1), add: has(2), edit: has(3), del: has(4), manage: has(26) || has(65) };
+  r.profile = r.manage ? "Contrôle total" : (r.add || r.edit) ? "Utilisateur" : "Lecteur";
+  return r;
+}
+function allowed(feature, lib) {
+  const r = lib ? S.rights[lib.id] : null;
+  const prof = r ? r.profile : (Object.values(S.rights).some(x => x.manage) ? "Contrôle total" :
+               Object.values(S.rights).some(x => x.add) ? "Utilisateur" : "Lecteur");
+  const list = (S.features[feature] || FEATURE_DEFAULTS[feature] || PROFILES);
+  return list.includes(prof);
+}
+
+/* ============================================================ chargement */
+async function boot() {
+  try {
+    const [u, w] = await Promise.all([api("/_api/web/currentuser"), api("/_api/web?$select=Title,Url,ServerRelativeUrl")]);
+    S.user = u.d; S.web = w.d;
+    const libs = results(await api("/_api/web/lists?$filter=BaseTemplate eq 101 and Hidden eq false" +
+      "&$select=Id,Title,ItemCount,ListItemEntityTypeFullName,RootFolder/ServerRelativeUrl&$expand=RootFolder"));
+    S.libs = libs.map(l => ({ id: l.Id, title: l.Title, root: l.RootFolder.ServerRelativeUrl, entity: l.ListItemEntityTypeFullName,
+                              count: l.ItemCount })).sort((a, b) => a.title.localeCompare(b.title, "fr"));
+    await Promise.all(S.libs.map(async l => {
+      try { S.rights[l.id] = perms((await api(`/_api/web/lists(guid'${l.id}')/EffectiveBasePermissions`)).d.EffectiveBasePermissions || {}); }
+      catch (e) { S.rights[l.id] = { read: true, profile: "Lecteur" }; }
+    }));
+    await loadSharedConfig();
+    show(S.tab);
+  } catch (e) { fail(e); }
+}
+async function loadSharedConfig() {
+  try {
+    const items = results(await api("/_api/web/lists/getbytitle('GestSP_Configuration')/items?$select=Title,GSP_Valeur&$top=100"));
+    for (const it of items) {
+      const v = JSON.parse(it.GSP_Valeur || "null");
+      if (it.Title === "tags" && Array.isArray(v) && v.length) S.tags = v;
+      if (it.Title === "profile_features" && v) S.features = v;
+    }
+  } catch (e) { /* pas de réglages partagés : valeurs par défaut */ }
+}
+async function fieldsOf(lib) {
+  if (!S.fields[lib.id]) {
+    const f = results(await api(`/_api/web/lists(guid'${lib.id}')/fields?$select=InternalName`));
+    S.fields[lib.id] = new Set(f.map(x => x.InternalName));
+  }
+  return S.fields[lib.id];
+}
+function fail(e) {
+  if (e instanceof AuthError) { if (NATIVE) NATIVE.relogin(); else view(`<div class="empty">Session expirée. Reconnectez-vous.</div>`); return; }
+  toast(e.message || String(e), 4000);
+  console.error(e);
+}
+function libOf(url) { return S.libs.slice().sort((a, b) => b.root.length - a.root.length)
+                                .find(l => (url + "/").toLowerCase().startsWith(l.root.toLowerCase() + "/")); }
+
+/* ================================================================ écrans */
+function view(html, title) { $("#view").innerHTML = html; if (title) $("#title").textContent = title; window.scrollTo(0, 0); }
+function show(tab) {
+  S.tab = tab;
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+  $("#fab").style.display = "none";
+  ({ home: showHome, browse: () => S.lib ? openFolder(S.lib, S.folder, false) : showLibs(), search: showSearch,
+     review: showReview, settings: showSettings })[tab]();
+  updateBack();
+}
+function updateBack() { $("#b-back").style.visibility = (S.tab === "browse" && S.lib) ? "visible" : "hidden"; }
+function favs() { try { return JSON.parse(localStorage.getItem("gestsp_favs") || "[]"); } catch (e) { return []; } }
+function setFavs(f) { try { localStorage.setItem("gestsp_favs", JSON.stringify(f)); } catch (e) {} }
+
+function showHome() {
+  const f = favs();
+  const n = S.pending ? S.pending.length : null;
+  view(`
+    <div class="sec">Bonjour ${esc((S.user && S.user.Title) || "")}</div>
+    <div class="card"><div class="row" data-go="review"><div class="ico" style="background:#2e7d32">✓</div>
+      <div class="txt"><div class="t1">À valider${n ? `<span class="badge">${n}</span>` : ""}</div>
+      <div class="t2">${n == null ? "Documents dont vous êtes le relecteur" : n ? n + " document(s) attendent votre décision" : "Rien à valider"}</div></div><div class="chev">›</div></div></div>
+    <div class="sec">Favoris</div>
+    <div class="card">${f.length ? f.map((x, i) => `<div class="row" data-fav="${i}"><div class="ico dir">★</div>
+      <div class="txt"><div class="t1">${esc(x.name)}</div><div class="t2">${esc(x.libTitle)}</div></div><div class="chev">›</div></div>`).join("")
+      : `<div class="empty">Ajoutez un dossier aux favoris depuis Parcourir (★).</div>`}</div>
+    <div class="sec">Bibliothèques</div>
+    <div class="card">${libRows()}</div>`, (S.web && S.web.Title) || "GestSP");
+  bindLibRows();
+  document.querySelectorAll("[data-fav]").forEach(el => el.onclick = () => {
+    const x = f[+el.dataset.fav]; const lib = S.libs.find(l => l.id === x.libId);
+    if (!lib) return toast("Bibliothèque inaccessible.");
+    S.tab = "browse"; document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === "browse"));
+    S.stack = []; openFolder(lib, x.url, false);
+  });
+  document.querySelector("[data-go=review]").onclick = () => show("review");
+  if (S.pending == null) loadPending().then(() => { if (S.tab === "home") showHome(); }).catch(() => {});
+}
+function libRows() {
+  return S.libs.map(l => `<div class="row" data-lib="${l.id}"><div class="ico dir">▤</div><div class="txt">
+    <div class="t1">${esc(l.title)}</div><div class="t2">${l.count} élément(s) · ${esc((S.rights[l.id] || {}).profile || "")}</div></div><div class="chev">›</div></div>`).join("")
+    || `<div class="empty">Aucune bibliothèque accessible.</div>`;
+}
+function bindLibRows() {
+  document.querySelectorAll("[data-lib]").forEach(el => el.onclick = () => {
+    const lib = S.libs.find(l => l.id === el.dataset.lib);
+    S.tab = "browse"; document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === "browse"));
+    S.stack = []; openFolder(lib, lib.root, false);
+  });
+}
+function showLibs() { view(`<div class="sec">Bibliothèques</div><div class="card">${libRows()}</div>`, "Parcourir"); bindLibRows(); }
+
+/* ------------------------------------------------------------- parcourir */
+async function openFolder(lib, url, push = true) {
+  if (push && S.lib) S.stack.push([S.lib, S.folder]);
+  S.lib = lib; S.folder = url; updateBack();
+  const name = url === lib.root ? lib.title : url.split("/").pop();
+  view(`<div class="spin"></div>`, name);
+  try {
+    const base = `/_api/web/GetFolderByServerRelativeUrl('${q(url)}')`;
+    const [fo, fi] = await Promise.all([api(base + "/Folders?$expand=ListItemAllFields"),
+                                         api(base + "/Files?$expand=ListItemAllFields,ModifiedBy")]);
+    const folders = results(fo).filter(f => !(url === lib.root && f.Name === "Forms") && !(f.Name.startsWith("_") && !f.ListItemAllFields));
+    const files = results(fi);
+    S.items = folders.map(f => ({ dir: true, name: f.Name, url: f.ServerRelativeUrl, count: f.ItemCount, f: f.ListItemAllFields || {} }))
+      .sort((a, b) => a.name.localeCompare(b.name, "fr"))
+      .concat(files.map(f => ({ dir: false, name: f.Name, url: f.ServerRelativeUrl, size: +f.Length, modified: f.TimeLastModified,
+        by: (f.ModifiedBy || {}).Title || "", version: f.UIVersionLabel, out: (f.CheckedOutByUser || {}).Title || "",
+        f: f.ListItemAllFields || {} })).sort((a, b) => a.name.localeCompare(b.name, "fr")));
+    if (S.lib !== lib || S.folder !== url) return;
+    renderFolder();
+  } catch (e) { fail(e); view(`<div class="empty">Impossible d'ouvrir ce dossier.</div>`); }
+}
+function crumbs(lib, url) {
+  const parts = [`<a href="#" data-crumb="${esc(lib.root)}">${esc(lib.title)}</a>`];
+  let cur = lib.root;
+  for (const s of url.slice(lib.root.length).split("/").filter(Boolean)) { cur += "/" + s; parts.push(`<a href="#" data-crumb="${esc(cur)}">${esc(s)}</a>`); }
+  return parts.join(" › ");
+}
+function renderFolder() {
+  const lib = S.lib, isFav = favs().some(x => x.url === S.folder);
+  const rows = S.items.map((it, i) => it.dir
+    ? `<div class="row" data-i="${i}"><div class="ico dir">▰</div><div class="txt"><div class="t1">${esc(it.name)}</div>
+       <div class="t2">${it.count != null ? it.count + " élément(s)" : "Dossier"}</div></div><div class="chev">›</div></div>`
+    : `<div class="row" data-i="${i}"><div class="ico" style="background:${EXT_COLORS[ext(it.name)] || "#5b6778"}">${esc(ext(it.name))}</div>
+       <div class="txt"><div class="t1" ${it.out ? 'style="color:#b3261e"' : ""}>${esc(it.name)}</div>
+       <div class="t2">${size(it.size)} · ${date(it.modified)}${it.f[COLS.status] ? " · " + esc(it.f[COLS.status]) : ""}</div>
+       ${chips(vals(it.f[COLS.tags]))}</div></div>`).join("");
+  view(`<div class="crumbs">${crumbs(lib, S.folder)}</div>
+    <div class="btns" style="padding-top:0"><button class="btn" id="b-fav">${isFav ? "★ Favori" : "☆ Ajouter aux favoris"}</button>
+    ${(S.rights[lib.id] || {}).add ? '<button class="btn" id="b-newdir">+ Dossier</button>' : ""}</div>
+    <div class="card">${rows || '<div class="empty">Dossier vide.</div>'}</div>`, S.folder === lib.root ? lib.title : S.folder.split("/").pop());
+  document.querySelectorAll("[data-i]").forEach(el => el.onclick = () => {
+    const it = S.items[+el.dataset.i]; it.dir ? openFolder(lib, it.url) : details(lib, it);
+  });
+  document.querySelectorAll("[data-crumb]").forEach(a => a.onclick = ev => { ev.preventDefault(); openFolder(lib, a.dataset.crumb); });
+  $("#b-fav").onclick = () => { let f = favs(); f = isFav ? f.filter(x => x.url !== S.folder)
+      : f.concat([{ libId: lib.id, libTitle: lib.title, url: S.folder, name: S.folder === lib.root ? lib.title : S.folder.split("/").pop() }]);
+    setFavs(f); toast(isFav ? "Retiré des favoris" : "Ajouté aux favoris"); renderFolder(); };
+  const nd = $("#b-newdir"); if (nd) nd.onclick = newFolder;
+  $("#fab").style.display = (S.rights[lib.id] || {}).add && allowed("multi_deposit", lib) ? "block" : "none";
+}
+async function newFolder() {
+  const name = prompt("Nom du nouveau dossier :");
+  if (!name || !name.trim()) return;
+  try {
+    await api("/_api/web/folders", { method: "POST", body: JSON.stringify({ __metadata: { type: "SP.Folder" },
+      ServerRelativeUrl: S.folder + "/" + name.trim().replace(/[~"#%&*:<>?/\\{|}]/g, "_") }) });
+    toast("Dossier créé"); openFolder(S.lib, S.folder, false);
+  } catch (e) { fail(e); }
+}
+
+/* --------------------------------------------------------------- fiche */
+function sheet(html) { $("#sheet-body").innerHTML = html; $("#sheet").style.display = "block"; }
+function closeSheet() { $("#sheet").style.display = "none"; }
+$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+
+function isReviewer(v) { if (!v || !S.user) return false; v = String(v).toLowerCase();
+  return (S.user.Email && v.includes(S.user.Email.toLowerCase())) || (S.user.Title && v.includes(S.user.Title.toLowerCase())); }
+
+function details(lib, it) {
+  const f = it.f || {}, tags = vals(f[COLS.tags]);
+  const canTag = allowed("indicators", lib) && (S.rights[lib.id] || {}).edit && (S.fields[lib.id] ? S.fields[lib.id].has(COLS.tags) : true);
+  const inReview = f[COLS.status] === ST.review;
+  const canDecide = inReview && allowed("approve", lib) && (isReviewer(f[COLS.reviewer]) || (S.rights[lib.id] || {}).manage);
+  const kv = [["Taille", size(it.size)], ["Modifié", date(it.modified) + (it.by ? " par " + it.by : "")], ["Version", it.version],
+    ["Statut", f[COLS.status]], ["Relecteur", f[COLS.reviewer]], ["Échéance", day(f[COLS.due])], ["Type", f[COLS.type]],
+    ["Extrait par", it.out]].filter(x => x[1]);
+  sheet(`<h2>${esc(it.name)}</h2>
+    <div class="card">${kv.map(([k, v]) => `<div class="kv"><b>${k}</b><span>${esc(v)}</span></div>`).join("")}
+    <div class="kv"><b>Indicateurs</b><span>${tags.length ? chips(tags) : "—"}</span></div></div>
+    ${/\.(png|jpe?g|gif|webp)$/i.test(it.name) ? `<div class="card"><img src="${esc(SITE_URL + encodeURI(it.url))}" style="width:100%;display:block" alt=""></div>` : ""}
+    <div class="btns">
+      <button class="btn pri" id="d-open">Ouvrir</button>
+      <button class="btn" id="d-share">Partager le lien</button>
+      ${canTag ? '<button class="btn" id="d-tags">Indicateurs</button>' : ""}
+    </div>
+    ${canDecide ? `<div class="btns"><button class="btn ok" id="d-ok">✓ Valider</button><button class="btn ko" id="d-ko">✗ Refuser</button></div>` : ""}`);
+  $("#d-open").onclick = () => openFile(it);
+  $("#d-share").onclick = () => shareLink(it);
+  if (canTag) $("#d-tags").onclick = () => editTags(lib, it);
+  if (canDecide) { $("#d-ok").onclick = () => decide(lib, it, true); $("#d-ko").onclick = () => decide(lib, it, false); }
+  fieldsOf(lib).catch(() => {});
+}
+function openFile(it) {
+  const url = SITE_URL.replace(/^(https?:\/\/[^/]+).*$/, "$1") + encodeURI(it.url);
+  if (NATIVE) NATIVE.openFile(url, it.name); else window.open(url, "_blank");
+}
+function shareLink(it) {
+  const url = SITE_URL.replace(/^(https?:\/\/[^/]+).*$/, "$1") + encodeURI(it.url);
+  if (NATIVE) NATIVE.share(it.name, url);
+  else if (navigator.share) navigator.share({ title: it.name, url }).catch(() => {});
+  else { navigator.clipboard && navigator.clipboard.writeText(url); toast("Lien copié"); }
+}
+async function setFields(lib, id, values) {
+  await api(`/_api/web/lists(guid'${lib.id}')/items(${id})`, { method: "POST",
+    headers: { "IF-MATCH": "*", "X-HTTP-Method": "MERGE" },
+    body: JSON.stringify(Object.assign({ __metadata: { type: lib.entity } }, values)) });
+}
+function editTags(lib, it) {
+  const cur = new Set(vals(it.f[COLS.tags]));
+  const render = () => {
+    sheet(`<h2>Indicateurs</h2><div class="t2" style="margin:0 14px">${esc(it.name)}</div>
+      <div class="tagpick">${S.tags.map(t => `<button data-t="${esc(t.name)}" class="${cur.has(t.name) ? "on" : ""}"
+        style="${cur.has(t.name) ? `background:${t.color};border-color:${t.color}` : `color:${t.color};border-color:${t.color}55`}">${esc(t.name)}</button>`).join("")}</div>
+      <div class="btns"><button class="btn pri" id="t-save">Enregistrer</button><button class="btn" id="t-cancel">Annuler</button></div>`);
+    document.querySelectorAll("[data-t]").forEach(b => b.onclick = () => { const n = b.dataset.t; cur.has(n) ? cur.delete(n) : cur.add(n); render(); });
+    $("#t-cancel").onclick = () => details(lib, it);
+    $("#t-save").onclick = async () => {
+      const list = S.tags.map(t => t.name).filter(n => cur.has(n));
+      try {
+        await setFields(lib, it.f.Id || it.f.ID, { [COLS.tags]: { __metadata: { type: "Collection(Edm.String)" }, results: list } });
+        it.f[COLS.tags] = list; toast("Indicateurs enregistrés"); details(lib, it);
+        if (S.tab === "browse") renderFolder();
+      } catch (e) { fail(e); }
+    };
+  };
+  render();
+}
+async function decide(lib, it, ok) {
+  let comment = "";
+  if (!ok) { comment = prompt("Raison du refus :"); if (!comment) return; }
+  else if (!confirm(`Valider « ${it.name} » ?`)) return;
+  try {
+    await setFields(lib, it.f.Id || it.f.ID, { [COLS.status]: ok ? ST.ok : ST.rejected });
+    it.f[COLS.status] = ok ? ST.ok : ST.rejected;
+    toast(ok ? "Document validé" : "Document renvoyé en brouillon");
+    S.pending = (S.pending || []).filter(p => p.url !== it.url);
+    closeSheet();
+    if (S.tab === "review") showReview(); else if (S.tab === "browse") renderFolder();
+  } catch (e) { fail(e); }
+}
+
+/* ----------------------------------------------------- documents (listes) */
+async function allDocs(lib, cols) {
+  const have = await fieldsOf(lib);
+  const extra = cols.filter(c => have.has(c));
+  const sel = ["Id", "FSObjType", "FileLeafRef", "FileRef", "FileDirRef", "Modified", "Editor/Title", "File/Length"].concat(extra);
+  let url = `/_api/web/lists(guid'${lib.id}')/items?$select=${sel.join(",")}&$expand=Editor,File&$top=2000`;
+  const out = [];
+  while (url && out.length < 20000) {
+    const d = (await api(url)).d;
+    for (const x of d.results || []) {
+      if (+x.FSObjType === 1) continue;
+      const f = { Id: x.Id }; extra.forEach(c => f[c] = x[c] && x[c].results ? x[c].results : x[c]);
+      out.push({ dir: false, name: x.FileLeafRef, url: x.FileRef, folder: x.FileDirRef, modified: x.Modified,
+                 by: (x.Editor || {}).Title || "", size: +((x.File || {}).Length || 0), f, lib });
+    }
+    url = d.__next || null;
+  }
+  return out;
+}
+async function loadPending() {
+  const out = [];
+  for (const lib of S.libs) {
+    try {
+      const have = await fieldsOf(lib);
+      if (!have.has(COLS.status)) continue;
+      const docs = await allDocs(lib, [COLS.status, COLS.reviewer, COLS.due, COLS.tags, COLS.type]);
+      docs.filter(d => d.f[COLS.status] === ST.review && isReviewer(d.f[COLS.reviewer])).forEach(d => out.push(d));
+    } catch (e) { if (e instanceof AuthError) throw e; }
+  }
+  S.pending = out;
+  return out;
+}
+async function showReview() {
+  view(`<div class="spin"></div>`, "À valider");
+  try {
+    const list = await loadPending();
+    if (S.tab !== "review") return;
+    view(`<div class="sec">Documents dont vous êtes le relecteur</div><div class="card">${list.map((d, i) => `
+      <div class="row" data-p="${i}"><div class="ico" style="background:${EXT_COLORS[ext(d.name)] || "#5b6778"}">${esc(ext(d.name))}</div>
+      <div class="txt"><div class="t1">${esc(d.name)}</div><div class="t2">${esc(d.lib.title)} · échéance ${day(d.f[COLS.due]) || "—"}</div>
+      ${chips(vals(d.f[COLS.tags]))}</div><div class="chev">›</div></div>`).join("") || '<div class="empty">Rien à valider pour le moment.</div>'}</div>`, "À valider");
+    document.querySelectorAll("[data-p]").forEach(el => el.onclick = () => { const d = list[+el.dataset.p]; details(d.lib, d); });
+  } catch (e) { fail(e); }
+}
+
+/* --------------------------------------------------------------- recherche */
+let searchMode = "meta";
+function showSearch() {
+  if (!allowed("search")) { view(`<div class="warn">La recherche est réservée aux profils : ${(S.features.search || FEATURE_DEFAULTS.search).join(", ")}.</div>`, "Rechercher"); return; }
+  view(`<div class="field"><input type="search" id="s-q" placeholder="Mots, #indicateur, -exclure" autocomplete="off"></div>
+    <div class="seg"><button data-m="meta" class="${searchMode === "meta" ? "on" : ""}">Nom et indicateurs</button>
+    <button data-m="full" class="${searchMode === "full" ? "on" : ""}">Dans le contenu</button></div>
+    <div class="t2" style="margin:0 14px 8px">Seuls les documents auxquels vous avez accès apparaissent.</div>
+    <div id="s-res"></div>`, "Rechercher");
+  const inp = $("#s-q");
+  inp.value = showSearch.last || "";
+  inp.onkeydown = e => { if (e.key === "Enter") { inp.blur(); runSearch(inp.value); } };
+  document.querySelectorAll("[data-m]").forEach(b => b.onclick = () => { searchMode = b.dataset.m; showSearch(); if (showSearch.last) runSearch(showSearch.last); });
+}
+const docCache = {};
+function parseQuery(s) {
+  const toks = (s.match(/"[^"]+"|\S+/g) || []).map(t => t.replace(/^"|"$/g, ""));
+  const r = { inc: [], exc: [], tags: [] };
+  toks.forEach(t => t.startsWith("#") && t.length > 1 ? r.tags.push(fold(t.slice(1))) : t.startsWith("-") && t.length > 1 ? r.exc.push(fold(t.slice(1))) : r.inc.push(fold(t)));
+  return r;
+}
+async function runSearch(text) {
+  showSearch.last = text;
+  const box = $("#s-res");
+  if (!text.trim()) { box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="spin"></div>`;
+  try {
+    let res = [];
+    if (searchMode === "full") {
+      const qt = text.split(/\s+/).filter(w => !/^[#-]/.test(w)).join(" ") + " IsDocument:1";
+      const d = (await api(`/_api/search/query?querytext='${encodeURIComponent(qt.replace(/'/g, "''"))}'` +
+        `&selectproperties='Title,Path,FileName,Size,LastModifiedTime,Author,HitHighlightedSummary'&rowlimit=100`)).d;
+      const rows = (((d.query || {}).PrimaryQueryResult || {}).RelevantResults || {}).Table || {};
+      res = results(rows.Rows || { results: [] }).map(r => { const c = {}; results(r.Cells).forEach(x => c[x.Key] = x.Value);
+        const path = decodeURI(String(c.Path || "").replace(/^https?:\/\/[^/]+/, ""));
+        return { dir: false, name: c.FileName || c.Title || path.split("/").pop(), url: path, size: +c.Size, modified: c.LastModifiedTime,
+                 by: c.Author || "", f: {}, lib: libOf(path), summary: String(c.HitHighlightedSummary || "").replace(/<\/?c0>|<ddd\/>/g, "") }; });
+    } else {
+      const pq = parseQuery(text);
+      for (const lib of S.libs) {
+        if (!docCache[lib.id]) docCache[lib.id] = await allDocs(lib, [COLS.tags, COLS.status, COLS.type, COLS.reviewer, COLS.due]);
+        for (const d of docCache[lib.id]) {
+          const tags = vals(d.f[COLS.tags]).map(fold);
+          const hay = fold([d.name, d.folder, d.by, tags.join(" "), d.f[COLS.status], d.f[COLS.type]].join(" "));
+          if (pq.inc.every(w => hay.includes(w)) && !pq.exc.some(w => hay.includes(w)) &&
+              pq.tags.every(t => tags.some(x => x.startsWith(t)))) res.push(d);
+        }
+      }
+    }
+    box.innerHTML = `<div class="sec">${res.length} résultat(s)</div><div class="card">${res.slice(0, 200).map((d, i) => `
+      <div class="row" data-r="${i}"><div class="ico" style="background:${EXT_COLORS[ext(d.name)] || "#5b6778"}">${esc(ext(d.name))}</div>
+      <div class="txt"><div class="t1">${esc(d.name)}</div><div class="t2">${esc(d.lib ? d.lib.title : "")} · ${date(d.modified)}</div>
+      ${d.summary ? `<div class="t2" style="white-space:normal">${esc(d.summary)}</div>` : chips(vals(d.f[COLS.tags]))}</div></div>`).join("")
+      || '<div class="empty">Aucun document trouvé.</div>'}</div>`;
+    box.querySelectorAll("[data-r]").forEach(el => el.onclick = () => { const d = res[+el.dataset.r]; d.lib ? details(d.lib, d) : openFile(d); });
+  } catch (e) { box.innerHTML = ""; fail(e); }
+}
+
+/* ------------------------------------------------------------------ ajout */
+let pendingTags = new Set();
+$("#fab").onclick = () => {
+  pendingTags = new Set();
+  const render = () => sheet(`<h2>Ajouter dans « ${esc(S.folder === S.lib.root ? S.lib.title : S.folder.split("/").pop())} »</h2>
+    <div class="btns"><button class="btn pri" id="a-files">📄 Choisir des fichiers</button><button class="btn" id="a-photo">📷 Prendre une photo</button></div>
+    ${allowed("indicators", S.lib) ? `<div class="sec">Indicateurs à poser (facultatif)</div>
+    <div class="tagpick">${S.tags.map(t => `<button data-t="${esc(t.name)}" class="${pendingTags.has(t.name) ? "on" : ""}"
+      style="${pendingTags.has(t.name) ? `background:${t.color};border-color:${t.color}` : `color:${t.color};border-color:${t.color}55`}">${esc(t.name)}</button>`).join("")}</div>` : ""}
+    <div id="a-prog"></div>`);
+  render();
+  const bind = () => {
+    $("#a-files").onclick = () => $("#pick-files").click();
+    $("#a-photo").onclick = () => $("#pick-photo").click();
+    document.querySelectorAll("#sheet [data-t]").forEach(b => b.onclick = () => { const n = b.dataset.t;
+      pendingTags.has(n) ? pendingTags.delete(n) : pendingTags.add(n); render(); bind(); });
+  };
+  bind();
+};
+$("#pick-files").onchange = e => upload([...e.target.files]);
+$("#pick-photo").onchange = e => upload([...e.target.files].map(f => {
+  const n = f.name && f.name !== "image.jpg" ? f.name : `Photo ${new Date().toISOString().slice(0, 19).replace(/[T:]/g, "-")}.jpg`;
+  return new File([f], n, { type: f.type });
+}));
+function xhrUpload(url, file, dig, onp) {
+  return new Promise((res, rej) => {
+    const x = new XMLHttpRequest();
+    x.open("POST", url); x.withCredentials = true;
+    x.setRequestHeader("Accept", "application/json;odata=verbose"); x.setRequestHeader("X-RequestDigest", dig);
+    x.upload.onprogress = e => e.lengthComputable && onp(e.loaded / e.total);
+    x.onload = () => x.status < 300 ? res(JSON.parse(x.responseText || "null")) :
+      rej(new Error(x.status === 403 ? "Accès refusé." : x.status === 401 ? "Session expirée" : "Envoi refusé (" + x.status + ")."));
+    x.onerror = () => rej(new Error("Envoi interrompu (réseau)."));
+    x.send(file);
+  });
+}
+async function upload(files) {
+  if (!files.length) return;
+  const lib = S.lib, folder = S.folder, tags = S.tags.map(t => t.name).filter(n => pendingTags.has(n));
+  const prog = $("#a-prog") || document.body;
+  let done = 0;
+  for (const f of files) {
+    prog.innerHTML = `<div class="t2" style="margin:8px 14px">${esc(f.name)} (${done + 1}/${files.length})</div><div class="progress"><div id="a-bar"></div></div>`;
+    try {
+      const name = f.name.replace(/[~"#%&*:<>?/\\{|}]/g, "_");
+      const r = await xhrUpload(SITE_URL + `/_api/web/GetFolderByServerRelativeUrl('${q(folder)}')/Files/add(url='${q(name)}',overwrite=false)?$expand=ListItemAllFields`,
+                                f, await digest(), p => { const b = $("#a-bar"); if (b) b.style.width = Math.round(p * 100) + "%"; });
+      let id = r && r.d && r.d.ListItemAllFields && (r.d.ListItemAllFields.Id || r.d.ListItemAllFields.ID);
+      if (!id && tags.length) {
+        const fi = await api(`/_api/web/GetFileByServerRelativeUrl('${q(folder + "/" + name)}')/ListItemAllFields?$select=Id`);
+        id = fi.d.Id;
+      }
+      if (tags.length && id) await setFields(lib, id, { [COLS.tags]: { __metadata: { type: "Collection(Edm.String)" }, results: tags } });
+      done++;
+    } catch (e) {
+      fail(/existe|exists|400/.test(e.message) ? new Error(`« ${f.name} » existe déjà dans ce dossier.`) : e);
+    }
+  }
+  $("#pick-files").value = ""; $("#pick-photo").value = "";
+  closeSheet();
+  toast(`${done} fichier(s) envoyé(s)`);
+  delete docCache[lib.id];
+  openFolder(lib, folder, false);
+}
+
+/* --------------------------------------------------------------- réglages */
+function showSettings() {
+  view(`<div class="sec">Compte</div><div class="card">
+      <div class="kv"><b>Utilisateur</b><span>${esc(S.user ? S.user.Title : "")}</span></div>
+      <div class="kv"><b>Site</b><span style="word-break:break-all">${esc(SITE_URL)}</span></div></div>
+    <div class="sec">Vos droits</div><div class="card">${S.libs.map(l => `<div class="kv"><b>${esc(l.title)}</b><span>${esc((S.rights[l.id] || {}).profile || "")}</span></div>`).join("")}</div>
+    <div class="btns">${NATIVE ? '<button class="btn" id="st-site">Changer de site</button><button class="btn ko" id="st-out">Se déconnecter</button>' : ""}</div>
+    <div class="sec">À propos</div><div class="card"><div class="kv" style="display:block;line-height:1.45">
+      <b style="display:block;width:auto">GestSP Mobile ${VERSION}</b>Version simplifiée de GestSP pour Android : parcourir le
+      CEA Collab, ouvrir et partager les documents, ajouter des fichiers ou des photos, poser des indicateurs, rechercher
+      et valider les relectures. Les droits SharePoint s'appliquent ; les réglages partagés par GestSP (indicateurs,
+      profils) sont repris automatiquement.</div></div>`, "Réglages");
+  if (NATIVE) {
+    $("#st-out").onclick = () => { if (confirm("Se déconnecter ?")) NATIVE.logout(); };
+    $("#st-site").onclick = () => { const u = prompt("Adresse du site SharePoint :", SITE_URL); if (u) NATIVE.setSite(u.trim()); };
+  }
+}
+
+/* ------------------------------------------------------------ navigation */
+function back() {
+  if ($("#sheet").style.display === "block") { closeSheet(); return true; }
+  if (S.tab === "browse" && S.lib) {
+    if (S.stack.length) { const [l, u] = S.stack.pop(); openFolder(l, u, false); return true; }
+    if (S.folder !== S.lib.root) { openFolder(S.lib, S.folder.split("/").slice(0, -1).join("/"), false); return true; }
+    S.lib = null; showLibs(); updateBack(); return true;
+  }
+  if (S.tab !== "home") { show("home"); return true; }
+  return false;
+}
+window.GestSP = { back: () => back(), refresh: () => refresh() };
+$("#b-back").onclick = back;
+function refresh() { S.pending = null; S.fields = {}; Object.keys(docCache).forEach(k => delete docCache[k]); show(S.tab); }
+$("#b-refresh").onclick = refresh;
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => { if (b.dataset.tab === "browse" && S.tab === "browse") { S.lib = null; S.stack = []; } show(b.dataset.tab); });
+boot();
+</script>
+</body>
+</html>
