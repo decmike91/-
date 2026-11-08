@@ -1,4 +1,4 @@
-# Construit l'APK de GestSP Mobile à chaque envoi sur GitHub (ou à la demande : onglet Actions › Run workflow).
+# Construit l'APK de GestSP Mobile à chaque envoi (ou à la demande : onglet Actions › Run workflow).
 # L'APK est téléchargeable dans l'onglet Actions › exécution › Artifacts › GestSP-Mobile-apk.
 name: GestSP Mobile (APK)
 
@@ -9,21 +9,35 @@ on:
 
 jobs:
   apk:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: "gsp Android"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: "17"
-      - uses: android-actions/setup-android@v3
+      - name: SDK Android
+        run: |
+          if [ -z "$ANDROID_HOME" ] || ! ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager >/dev/null 2>&1; then
+            export ANDROID_HOME="$HOME/android-sdk"
+            mkdir -p "$ANDROID_HOME/cmdline-tools"
+            curl -sSL -o /tmp/clt.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+            unzip -q /tmp/clt.zip -d "$ANDROID_HOME/cmdline-tools"
+            mv "$ANDROID_HOME/cmdline-tools/cmdline-tools" "$ANDROID_HOME/cmdline-tools/latest"
+          fi
+          echo "ANDROID_HOME=$ANDROID_HOME" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
+          SDKM=$(ls "$ANDROID_HOME"/cmdline-tools/*/bin/sdkmanager | sort | tail -1)
+          yes | "$SDKM" --licenses > /dev/null || true
+          "$SDKM" "platforms;android-34" "build-tools;34.0.0" "platform-tools" > /dev/null
+          echo "sdk.dir=$ANDROID_HOME" > local.properties
       - name: Construire l'APK
         run: |
           chmod +x gradlew
-          ./gradlew --no-daemon assembleRelease
+          ./gradlew --no-daemon --stacktrace assembleRelease
           cp app/build/outputs/apk/release/app-release.apk GestSP-Mobile.apk
       - uses: actions/upload-artifact@v4
         with:
